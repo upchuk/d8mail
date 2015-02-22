@@ -7,7 +7,7 @@ use Drupal\Component\Utility\String;
  */
 function d8mail_entity_insert(Drupal\Core\Entity\EntityInterface $entity) {
 
-  if ($entity->getEntityTypeId() !== 'node' || ($entity->getEntityTypeId() !== 'node' && $entity->bundle() !== 'article')) {
+  if ($entity->getEntityTypeId() !== 'node' || ($entity->getEntityTypeId() === 'node' && $entity->bundle() !== 'article')) {
     return;
   }
 
