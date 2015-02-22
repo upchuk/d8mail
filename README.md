@@ -1,0 +1,1 @@
+Simple Drupal 8 module that demonstrates the use of the Mail API by using Mandrill to send emails whenever a new article node is saved.

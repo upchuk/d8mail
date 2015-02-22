@@ -1,0 +1,63 @@
+<?php
+
+use Drupal\Component\Utility\String;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function d8mail_entity_insert(Drupal\Core\Entity\EntityInterface $entity) {
+
+  if ($entity->getEntityTypeId() !== 'node' || ($entity->getEntityTypeId() !== 'node' && $entity->bundle() !== 'article')) {
+    return;
+  }
+
+  $mailManager = \Drupal::service('plugin.manager.mail');
+
+  $module = 'd8mail';
+  $key = 'node_insert';
+  $to = \Drupal::currentUser()->getEmail();
+  $params['message'] = $entity->get('body')->value;
+  $params['node_title'] = $entity->label();
+  $langcode = \Drupal::currentUser()->getPreferredLangcode();
+  $send = true;
+
+  $result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
+  if ( ! $result['result']) {
+    $message = t('There was a problem sending your email notification to @email for creating node @id.', array('@email' => $to, '@id' => $entity->id()));
+    drupal_set_message($message, 'error');
+    \Drupal::logger('d8mail')->error($message);
+    return;
+  }
+
+  $message = t('An email notification has been sent to @email for creating node @id.', array('@email' => $to, '@id' => $entity->id()));
+  drupal_set_message($message);
+  \Drupal::logger('d8mail')->notice($message);
+}
+
+/**
+ * Implements hook_mail().
+ */
+function d8mail_mail($key, &$message, $params) {
+  $options = array(
+    'langcode' => $message['langcode'],
+  );
+
+  switch ($key) {
+    case 'node_insert':
+      $message['from'] = \Drupal::config('system.site')->get('mail');
+      $message['subject'] = t('Node created: @title', array('@title' => $params['node_title']), $options);
+      $message['body'][] = String::checkPlain($params['message']);
+      break;
+  }
+}
+
+/**
+ * Implements hook_mail_alter().
+ */
+function d8mail_mail_alter(&$message) {
+  switch ($message['key']) {
+    case 'node_insert':
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed; delsp=yes';
+      break;
+  }
+}
