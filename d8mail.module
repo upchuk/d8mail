@@ -1,6 +1,6 @@
 <?php
 
-use Drupal\Component\Utility\String;
+use Drupal\Component\Utility\SafeMarkup;
 
 /**
  * Implements hook_entity_insert().
@@ -46,7 +46,7 @@ function d8mail_mail($key, &$message, $params) {
     case 'node_insert':
       $message['from'] = \Drupal::config('system.site')->get('mail');
       $message['subject'] = t('Node created: @title', array('@title' => $params['node_title']), $options);
-      $message['body'][] = String::checkPlain($params['message']);
+      $message['body'][] = SafeMarkup::checkPlain($params['message']);
       break;
   }
 }
